@@ -3,9 +3,22 @@ namespace HoneyRaesAPI.Models
 {
 	public class ServiceTicket
 	{
-		public ServiceTicket()
+        public int Id { get; set; }
+        public int CustomerId { get; set; }
+        public int EmployeeId { get; set; }
+        public string Description { get; set; }
+        public bool Emergency { get; set; }
+        public string DateCompleted { get; set; }
+
+        public ServiceTicket(int id, int customerId, int employeeId, string description, bool emergency, string dateCompleted)
 		{
-		}
+            Id = id;
+            CustomerId = customerId;
+            EmployeeId = employeeId;
+            Description = description;
+            Emergency = false;
+            DateCompleted = dateCompleted;
+        }
 	}
 }
 
