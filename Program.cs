@@ -63,9 +63,14 @@ app.MapGet("/employee", () =>
     return employees;
 });
 
-app.MapGet("/employee/{id}", (int id) =>
+app.MapGet("/employees/{id}", (int id) =>
 {
-    return employees.FirstOrDefault(emp => emp.Id == id);
+    Employee employee = employees.FirstOrDefault(e => e.Id == id);
+    if (employee == null)
+    {
+        return Results.NotFound();
+    }
+    return Results.Ok(employee);
 });
 
 app.MapGet("/customer", () =>
@@ -75,7 +80,12 @@ app.MapGet("/customer", () =>
 
 app.MapGet("/customer/{id}", (int id) =>
 {
-    return customers.FirstOrDefault(c => c.Id == id);
+    Customer customer = customers.FirstOrDefault(c => c.Id == id);
+    if (customer == null)
+    {
+        return Results.NotFound();
+    }
+    return Results.Ok(customer);
 });
 
 // always make sure this is at the end of the file:
