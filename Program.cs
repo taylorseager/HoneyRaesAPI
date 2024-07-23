@@ -58,5 +58,15 @@ app.MapGet("/servicetickets/{id}", (int id) =>
     return serviceTickets.FirstOrDefault(st => st.Id == id);
 });
 
+app.MapGet("/employee", () =>
+{
+    return employees;
+});
+
+app.MapGet("/employee/{id}", (int id) =>
+{
+    return employees.FirstOrDefault(emp => emp.Id == id);
+});
+
 // always make sure this is at the end of the file:
 app.Run();
