@@ -65,7 +65,7 @@ List<ServiceTicket> serviceTickets = new List<ServiceTicket>
     {
         Id = 125,
         CustomerId = 3,
-        EmployeeId = 0,
+        EmployeeId = null,
         Description = "Wants to learn more about dinos.",
         Emergency = false,
         DateCompleted = new DateTime(2024, 07, 20)
@@ -83,7 +83,7 @@ List<ServiceTicket> serviceTickets = new List<ServiceTicket>
     {
         Id = 127,
         CustomerId = 2,
-        EmployeeId = 0,
+        EmployeeId = null,
         Description = "Got a call back and needs to run lines ASAP.",
         Emergency = true,
         DateCompleted = new DateTime()
@@ -105,12 +105,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
 app.MapGet("/servicetickets", () =>
 {
     return serviceTickets;
@@ -123,6 +117,7 @@ app.MapGet("/servicetickets/{id}", (int id) =>
     {
         return Results.NotFound();
     }
+    serviceTicket.Employee = employees.FirstOrDefault(e => e.Id == serviceTicket.EmployeeId);
     return Results.Ok(serviceTicket);
 });
 
@@ -131,14 +126,14 @@ app.MapGet("/employee", () =>
     return employees;
 });
 
-app.MapGet("/employees/{id}", (int id) =>
+app.MapGet("/employee/{id}", (int id) =>
 {
     Employee employee = employees.FirstOrDefault(e => e.Id == id);
     if (employee == null)
     {
         return Results.NotFound();
     }
-    employee.ServiceTickets = serviceTickets.Where(st => st.Id == id).ToList();
+    employee.ServiceTickets = serviceTickets.Where(st => st.EmployeeId == id).ToList();
     return Results.Ok(employee);
 });
 
