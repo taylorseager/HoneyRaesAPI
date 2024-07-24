@@ -5,26 +5,89 @@ var builder = WebApplication.CreateBuilder(args);
 
 List<Customer> customers = new List<Customer>()
 {
-    new Customer(id: 1, firstName: "Rachel", address: "123 Main St, NYC"),
-    new Customer(id: 2, firstName: "Monica", address: "146 First St, NYC"),
-    new Customer(id: 3, firstName: "Chandler", address: "231 Central Perk Dr, NYC"),
-
+    new Customer()
+    {
+        Id = 1,
+        FirstName = "Rachel",
+        Address = "123 Main St, NYC"
+    },
+    new Customer()
+    {
+        Id = 2,
+        FirstName = "Monica",
+        Address = "146 First St, NYC",
+    },
+    new Customer()
+    {
+        Id = 3,
+        FirstName = "Chandler",
+        Address = "231 Central Perk Dr, NYC"
+    }
 };
 
 List<Employee> employees = new List<Employee>
 {
-    new Employee(id: 1, firstName: "Joey", specialty: "Acting"),
-    new Employee(id: 2, firstName: "Ross", specialty: "History/Dinosaurs"),
+    new Employee()
+    {
+        Id = 1,
+        FirstName = "Joey",
+        Specialty = "Acting"
+    },
+    new Employee()
+    {
+        Id = 2,
+        FirstName = "Ross",
+        Specialty = "History/Dinosaurs"
+    }
 };
 
 List<ServiceTicket> serviceTickets = new List<ServiceTicket>
 {
-    new ServiceTicket(id: 123, customerId: 1, employeeId: 2, description: "Customer is struggling with WW2 topics.", emergency: true, dateCompleted: null),
-    new ServiceTicket(id: 124, customerId: 2, employeeId: 1, description: "Needs acting classes", emergency: false, dateCompleted: "07/14/2024"),
-    new ServiceTicket(id: 125, customerId: 3, employeeId: 0, description: "Wants to learn more about dinos.", emergency: false, dateCompleted: "07/20/2024"),
-    new ServiceTicket(id: 126, customerId: 1, employeeId: 1, description: "Has a casting call and needs some pointers.", emergency: false, dateCompleted: "07/21/2024"),
-    new ServiceTicket(id: 127, customerId: 2, employeeId: 0, description: "Got a call back and needs to run lines ASAP.", emergency: true, dateCompleted: null),
-
+    new ServiceTicket()
+    {
+        Id = 123,
+        CustomerId = 1,
+        EmployeeId = 2,
+        Description = "Customer is struggling with WW2 topics.",
+        Emergency = true,
+        DateCompleted = new DateTime()
+    },
+    new ServiceTicket()
+    {
+        Id = 124,
+        CustomerId = 2,
+        EmployeeId = 1,
+        Description = "Needs acting classes",
+        Emergency = false,
+        DateCompleted = new DateTime(2024, 07, 12)
+    },
+    new ServiceTicket()
+    {
+        Id = 125,
+        CustomerId = 3,
+        EmployeeId = null,
+        Description = "Wants to learn more about dinos.",
+        Emergency = false,
+        DateCompleted = new DateTime(2024, 07, 20)
+    },
+    new ServiceTicket()
+    {
+        Id = 126,
+        CustomerId = 1,
+        EmployeeId = 1,
+        Description = "Has a casting call and needs some pointers.",
+        Emergency = false,
+        DateCompleted = new DateTime(2024, 07, 21)
+    },
+    new ServiceTicket()
+    {
+        Id = 127,
+        CustomerId = 2,
+        EmployeeId = null,
+        Description = "Got a call back and needs to run lines ASAP.",
+        Emergency = true,
+        DateCompleted = new DateTime()
+    }
 };
 
 // Add services to the container.
@@ -42,12 +105,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
 app.MapGet("/servicetickets", () =>
 {
     return serviceTickets;
@@ -55,7 +112,46 @@ app.MapGet("/servicetickets", () =>
 
 app.MapGet("/servicetickets/{id}", (int id) =>
 {
-    return serviceTickets.FirstOrDefault(st => st.Id == id);
+    ServiceTicket serviceTicket = serviceTickets.FirstOrDefault(st => st.Id == id);
+    if (serviceTicket == null)
+    {
+        return Results.NotFound();
+    }
+    serviceTicket.Customer = customers.FirstOrDefault(c => c.Id == serviceTicket.CustomerId);
+    serviceTicket.Employee = employees.FirstOrDefault(e => e.Id == serviceTicket.EmployeeId);
+    return Results.Ok(serviceTicket);
+});
+
+app.MapGet("/employee", () =>
+{
+    return employees;
+});
+
+app.MapGet("/employee/{id}", (int id) =>
+{
+    Employee employee = employees.FirstOrDefault(e => e.Id == id);
+    if (employee == null)
+    {
+        return Results.NotFound();
+    }
+    employee.ServiceTickets = serviceTickets.Where(st => st.EmployeeId == id).ToList();
+    return Results.Ok(employee);
+});
+
+app.MapGet("/customer", () =>
+{
+    return customers;
+});
+
+app.MapGet("/customer/{id}", (int id) =>
+{
+    Customer customer = customers.FirstOrDefault(c => c.Id == id);
+    if (customer == null)
+    {
+        return Results.NotFound();
+    }
+    customer.ServiceTickets = serviceTickets.Where(st => st.CustomerId == id).ToList();
+    return Results.Ok(customer);
 });
 
 // always make sure this is at the end of the file:
