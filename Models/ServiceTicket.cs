@@ -10,6 +10,7 @@ namespace HoneyRaesAPI.Models
         public bool Emergency { get; set; }
         public DateTime? DateCompleted { get; set; }
         public Employee? Employee { get; set; }
+        public Customer? Customer { get; set; }
 
   //      public ServiceTicket(int id, int customerId, int employeeId, string description, bool emergency, string dateCompleted)
 		//{
