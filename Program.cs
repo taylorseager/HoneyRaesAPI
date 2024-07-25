@@ -130,12 +130,26 @@ app.MapPost("/servicetickets", (ServiceTicket serviceTicket) =>
     return serviceTicket;
 });
 
+app.MapDelete("/servicetickets/{id}", async (int id) =>
+{
+    var serviceTicketToDelete = serviceTickets.FirstOrDefault(st => st.Id == id);
+
+    if (serviceTicketToDelete == null)
+    {
+        return Results.NotFound();
+    }
+
+    serviceTickets.Remove(serviceTicketToDelete);
+    return Results.NoContent();
+});
+
+
 app.MapGet("/employee", () =>
 {
     return employees;
 });
 
-app.MapGet("/employee/{id}", (int id) =>
+app.MapGet("/employee/{id}", async (int id) =>
 {
     Employee employee = employees.FirstOrDefault(e => e.Id == id);
     if (employee == null)
