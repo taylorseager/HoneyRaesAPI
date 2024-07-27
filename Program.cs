@@ -224,7 +224,30 @@ app.MapGet("/employee/{id}/customers", (int id) =>
     List<Customer> employeeCustomers = customers.Where(c => customerIds.Contains(c.Id)).ToList();
 
     return Results.Ok(employeeCustomers);
-}); 
+});
+
+app.MapGet("/employee/month", () =>
+{
+    var completedTicketCountByEmployee = serviceTickets
+        .Where(st => st.EmployeeId != null && st.DateCompleted != null)
+        .GroupBy(st => st.EmployeeId) // groups tickets by employeeId/sets to key
+        .Select(st => new
+        {
+            EmployeeId = st.Key,
+            ServiceTicketCount = st.Count() // .Key accesses the identifier of the group (set by GroupBy method)
+        })
+        .OrderByDescending(c => c.ServiceTicketCount)
+        .FirstOrDefault();
+
+    if (completedTicketCountByEmployee == null)
+    {
+        return Results.NotFound();
+    }
+
+    var topTicketCountByEmployee = employees.FirstOrDefault(e => e.Id == completedTicketCountByEmployee.EmployeeId);
+
+    return Results.Ok(topTicketCountByEmployee);
+});
 
 app.MapGet("/customer", () =>
 {
