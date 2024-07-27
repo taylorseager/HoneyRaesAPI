@@ -174,6 +174,13 @@ app.MapGet("/servicetickets/emergencynotcomplete", () =>
     return Results.Ok(notCompleteEmergency);
 });
 
+app.MapGet("/servicetickets/unassigned", () =>
+{
+    var unassgined = serviceTickets.Where(st => st.EmployeeId == null).ToList();
+
+    return Results.Ok(unassgined);
+});
+
 app.MapGet("/employee", () =>
 {
     return employees;
