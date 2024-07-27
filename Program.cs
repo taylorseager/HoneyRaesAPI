@@ -198,6 +198,16 @@ app.MapGet("/employee/{id}", async (int id) =>
     return Results.Ok(employee);
 });
 
+app.MapGet("/employee/available", () =>
+{
+List<Employee> availableEmployees = employees.Where(emp => !serviceTickets.Any(st => st.EmployeeId == emp.Id && st.DateCompleted == null)).ToList();
+if (availableEmployees.Count == 0)
+{
+    return Results.NotFound();
+}
+return Results.Ok(availableEmployees);
+});
+
 app.MapGet("/customer", () =>
 {
     return customers;
@@ -218,20 +228,10 @@ app.MapGet("/customer/inactive", () =>
 {
     DateTime lastYear = DateTime.Now.AddYears(-1);
 
-    var lastCompletedDate = serviceTickets
-        .Where(st => st.DateCompleted.HasValue)
-        .GroupBy(st => st.CustomerId)
-        .Select(group => new
-        {
-            CustomerId = group.Key,
-            lastCompletedDate = group.Max(st => st.DateCompleted.Value)
-        })
-        .ToList();
-
-    var inactiveCustomers = lastCompletedDate
-        .Where(c => c.lastCompletedDate < lastYear)
-        .Select(c => c.CustomerId)
-        .ToList();
+    List<Customer> inactiveCustomers = customers
+                   .Where(c => !serviceTickets
+                   .Any(st => st.CustomerId == c.Id && st.DateCompleted.HasValue && st.DateCompleted.Value > lastYear))
+                   .ToList();
 
     return Results.Ok(inactiveCustomers);
 });
