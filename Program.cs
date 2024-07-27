@@ -213,6 +213,17 @@ app.MapGet("/employee/available", () =>
     return Results.Ok(availableEmployees);
 });
 
+app.MapGet("/employee/{id}/customers", (int id) =>
+{
+    var customerIds = serviceTickets
+                        .Where(st => st.EmployeeId == id)
+                        .Select(st => st.CustomerId)
+                        .Distinct()
+                        .ToList();
+
+    List<Customer> employeeCustomers = customers.Where(c => customerIds.Contains(c.Id)).ToList();
+}); 
+
 app.MapGet("/customer", () =>
 {
     return customers;
