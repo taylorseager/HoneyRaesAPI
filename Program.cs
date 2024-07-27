@@ -69,7 +69,7 @@ List<ServiceTicket> serviceTickets = new List<ServiceTicket>
         EmployeeId = null,
         Description = "Wants to learn more about dinos.",
         Emergency = false,
-        DateCompleted = new DateTime(2023, 07, 20)
+        DateCompleted = new DateTime(2023, 06, 20)
     },
     new ServiceTicket()
     {
@@ -217,13 +217,20 @@ app.MapGet("/customer/{id}", (int id) =>
 app.MapGet("/customer/inactive", () =>
 {
     DateTime lastYear = DateTime.Now.AddYears(-1);
-    if (customers == null || !customers.Any())
-    {
-        return Results.NotFound();
-    }
-    var inactiveCustomers = customers
-        .Where(c => c.ServiceTickets != null &&
-                    !c.ServiceTickets.All(st => st.DateCompleted.HasValue && st.DateCompleted.Value >= lastYear))
+
+    var lastCompletedDate = serviceTickets
+        .Where(st => st.DateCompleted.HasValue)
+        .GroupBy(st => st.CustomerId)
+        .Select(group => new
+        {
+            CustomerId = group.Key,
+            lastCompletedDate = group.Max(st => st.DateCompleted.Value)
+        })
+        .ToList();
+
+    var inactiveCustomers = lastCompletedDate
+        .Where(c => c.lastCompletedDate < lastYear)
+        .Select(c => c.CustomerId)
         .ToList();
 
     return Results.Ok(inactiveCustomers);
