@@ -169,7 +169,7 @@ app.MapPut("/servicetickets/{id}", (int id, ServiceTicket serviceTicket) =>
 
 app.MapGet("/servicetickets/emergencynotcomplete", () =>
 {
-    var notCompleteEmergency = serviceTickets.Where(st => st.Emergency == true && st.DateCompleted == null).ToList();
+    var notCompleteEmergency = serviceTickets.Where(st => st.Emergency == true && st.DateCompleted >= DateTime.Now).ToList();
 
     return Results.Ok(notCompleteEmergency);
 });
