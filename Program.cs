@@ -200,12 +200,17 @@ app.MapGet("/employee/{id}", async (int id) =>
 
 app.MapGet("/employee/available", () =>
 {
-List<Employee> availableEmployees = employees.Where(emp => !serviceTickets.Any(st => st.EmployeeId == emp.Id && st.DateCompleted == null)).ToList();
-if (availableEmployees.Count == 0)
-{
-    return Results.NotFound();
-}
-return Results.Ok(availableEmployees);
+    List<Employee> availableEmployees = employees
+               .Where(emp => !serviceTickets
+               .Any(st => st.EmployeeId == emp.Id && st.DateCompleted == null))
+               .ToList();
+
+    if (availableEmployees.Count == 0)
+    {
+       return Results.NotFound();
+    }
+
+    return Results.Ok(availableEmployees);
 });
 
 app.MapGet("/customer", () =>
