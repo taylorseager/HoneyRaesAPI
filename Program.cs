@@ -217,8 +217,8 @@ app.MapGet("/employee/{id}/customers", (int id) =>
 {
     var customerIds = serviceTickets
                         .Where(st => st.EmployeeId == id)
-                        .Select(st => st.CustomerId)
-                        .Distinct()
+                        .Select(st => st.CustomerId) // extracts CustomerId from each service ticket
+                        .Distinct() // basically removes duplicates, only shows each customer once
                         .ToList();
 
     List<Customer> employeeCustomers = customers.Where(c => customerIds.Contains(c.Id)).ToList();
