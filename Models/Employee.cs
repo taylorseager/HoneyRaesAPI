@@ -7,13 +7,5 @@ namespace HoneyRaesAPI.Models
         public string? FirstName { get; set; }
         public string? Specialty { get; set; }
         public List<ServiceTicket>? ServiceTickets { get; set; }
-
-        //public Employee(int id, string firstName, string specialty, List<ServiceTicket> serviceTickets)
-        //{
-        //    Id = id;
-        //    FirstName = firstName;
-        //    Specialty = specialty;
-        //    ServiceTickets = serviceTickets;
-        //}
     }
 }

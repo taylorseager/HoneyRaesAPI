@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using HoneyRaesAPI.Models;
+using Microsoft.AspNetCore.Builder;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -68,7 +69,7 @@ List<ServiceTicket> serviceTickets = new List<ServiceTicket>
         EmployeeId = null,
         Description = "Wants to learn more about dinos.",
         Emergency = false,
-        DateCompleted = new DateTime(2024, 07, 20)
+        DateCompleted = new DateTime(2023, 07, 20)
     },
     new ServiceTicket()
     {
@@ -211,6 +212,21 @@ app.MapGet("/customer/{id}", (int id) =>
     }
     customer.ServiceTickets = serviceTickets.Where(st => st.CustomerId == id).ToList();
     return Results.Ok(customer);
+});
+
+app.MapGet("/customer/inactive", () =>
+{
+    DateTime lastYear = DateTime.Now.AddYears(-1);
+    if (customers == null || !customers.Any())
+    {
+        return Results.NotFound();
+    }
+    var inactiveCustomers = customers
+        .Where(c => c.ServiceTickets != null &&
+                    !c.ServiceTickets.All(st => st.DateCompleted.HasValue && st.DateCompleted.Value >= lastYear))
+        .ToList();
+
+    return Results.Ok(inactiveCustomers);
 });
 
 // always make sure this is at the end of the file:
