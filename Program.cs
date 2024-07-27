@@ -49,8 +49,8 @@ List<ServiceTicket> serviceTickets = new List<ServiceTicket>
         CustomerId = 1,
         EmployeeId = 2,
         Description = "Customer is struggling with WW2 topics.",
-        Emergency = true,
-        DateCompleted = new DateTime()
+        Emergency = false,
+        DateCompleted = null
     },
     new ServiceTicket()
     {
@@ -86,7 +86,7 @@ List<ServiceTicket> serviceTickets = new List<ServiceTicket>
         EmployeeId = null,
         Description = "Got a call back and needs to run lines ASAP.",
         Emergency = true,
-        DateCompleted = new DateTime()
+        DateCompleted = null
     }
 };
 
@@ -169,7 +169,7 @@ app.MapPut("/servicetickets/{id}", (int id, ServiceTicket serviceTicket) =>
 
 app.MapGet("/servicetickets/emergencynotcomplete", () =>
 {
-    var notCompleteEmergency = serviceTickets.Where(st => st.Emergency == true && st.DateCompleted >= DateTime.Now).ToList();
+    var notCompleteEmergency = serviceTickets.Where(st => st.Emergency == true && st.DateCompleted == null).ToList();
 
     return Results.Ok(notCompleteEmergency);
 });
