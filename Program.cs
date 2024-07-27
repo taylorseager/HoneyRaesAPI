@@ -222,6 +222,8 @@ app.MapGet("/employee/{id}/customers", (int id) =>
                         .ToList();
 
     List<Customer> employeeCustomers = customers.Where(c => customerIds.Contains(c.Id)).ToList();
+
+    return Results.Ok(employeeCustomers);
 }); 
 
 app.MapGet("/customer", () =>
