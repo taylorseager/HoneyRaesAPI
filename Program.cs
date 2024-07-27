@@ -167,10 +167,11 @@ app.MapPut("/servicetickets/{id}", (int id, ServiceTicket serviceTicket) =>
     return Results.Ok();
 });
 
-app.MapGet("/servicetickets/emergency/notcomplete", (int id) =>
+app.MapGet("/servicetickets/emergencynotcomplete", () =>
 {
-    ServiceTicket serviceTicket = serviceTickets.FirstOrDefault(st => st.Id == id);
-    // .Where to filter for incomplete && emergencies?
+    var notCompleteEmergency = serviceTickets.Where(st => st.Emergency && st.DateCompleted == null).ToList();
+
+    return Results.Ok(notCompleteEmergency);
 });
 
 app.MapGet("/employee", () =>
