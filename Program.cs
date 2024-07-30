@@ -95,9 +95,21 @@ List<ServiceTicket> serviceTickets = new List<ServiceTicket>
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAnyOrigin",
+        builder =>
+        {
+            builder.AllowAnyOrigin()  // Allow requests from any origin
+                   .AllowAnyHeader()  // Allow any headers
+                   .AllowAnyMethod(); // Allow any HTTP methods (GET, POST, etc.)
+        });
+});
+builder.Services.AddControllers();
 
+//builder.Services.AddCors();
 var app = builder.Build();
-
+app.UseCors("AllowAnyOrigin");
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -108,6 +120,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.MapGet("/servicetickets", () =>
 {
+    Console.WriteLine("it got hit");
     return serviceTickets;
 });
 
@@ -180,6 +193,17 @@ app.MapGet("/servicetickets/unassigned", () =>
     var unassgined = serviceTickets.Where(st => st.EmployeeId == null).ToList();
 
     return Results.Ok(unassgined);
+});
+
+app.MapGet("/servicetickets/review", () =>
+{
+    List<ServiceTicket> ticketsNotComplete = serviceTickets.Where(st => st.DateCompleted == null).ToList();
+    List<ServiceTicket> sortedTickets = ticketsNotComplete
+                        .OrderByDescending(st => st.Emergency)
+                        .ThenByDescending(st => st.EmployeeId)
+                        .ToList();
+
+    return Results.Ok(sortedTickets);
 });
 
 app.MapGet("/employee", () =>
