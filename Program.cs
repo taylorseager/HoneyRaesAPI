@@ -120,7 +120,6 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.MapGet("/servicetickets", () =>
 {
-    Console.WriteLine("it got hit");
     return serviceTickets;
 });
 
