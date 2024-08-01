@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using HoneyRaesAPI.Models;
+using Microsoft.AspNetCore.Builder;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -49,8 +50,8 @@ List<ServiceTicket> serviceTickets = new List<ServiceTicket>
         CustomerId = 1,
         EmployeeId = 2,
         Description = "Customer is struggling with WW2 topics.",
-        Emergency = true,
-        DateCompleted = new DateTime()
+        Emergency = false,
+        DateCompleted = null
     },
     new ServiceTicket()
     {
@@ -68,7 +69,7 @@ List<ServiceTicket> serviceTickets = new List<ServiceTicket>
         EmployeeId = null,
         Description = "Wants to learn more about dinos.",
         Emergency = false,
-        DateCompleted = new DateTime(2024, 07, 20)
+        DateCompleted = new DateTime(2023, 06, 20)
     },
     new ServiceTicket()
     {
@@ -86,7 +87,7 @@ List<ServiceTicket> serviceTickets = new List<ServiceTicket>
         EmployeeId = null,
         Description = "Got a call back and needs to run lines ASAP.",
         Emergency = true,
-        DateCompleted = new DateTime()
+        DateCompleted = null
     }
 };
 
@@ -94,9 +95,21 @@ List<ServiceTicket> serviceTickets = new List<ServiceTicket>
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAnyOrigin",
+        builder =>
+        {
+            builder.AllowAnyOrigin()  // Allow requests from any origin
+                   .AllowAnyHeader()  // Allow any headers
+                   .AllowAnyMethod(); // Allow any HTTP methods (GET, POST, etc.)
+        });
+});
+builder.Services.AddControllers();
 
+//builder.Services.AddCors();
 var app = builder.Build();
-
+app.UseCors("AllowAnyOrigin");
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -167,6 +180,30 @@ app.MapPut("/servicetickets/{id}", (int id, ServiceTicket serviceTicket) =>
     return Results.Ok();
 });
 
+app.MapGet("/servicetickets/emergencynotcomplete", () =>
+{
+    var notCompleteEmergency = serviceTickets.Where(st => st.Emergency == true && st.DateCompleted == null).ToList();
+
+    return Results.Ok(notCompleteEmergency);
+});
+
+app.MapGet("/servicetickets/unassigned", () =>
+{
+    var unassgined = serviceTickets.Where(st => st.EmployeeId == null).ToList();
+
+    return Results.Ok(unassgined);
+});
+
+app.MapGet("/servicetickets/review", () =>
+{
+    List<ServiceTicket> ticketsNotComplete = serviceTickets.Where(st => st.DateCompleted == null).ToList();
+    List<ServiceTicket> sortedTickets = ticketsNotComplete
+                        .OrderByDescending(st => st.Emergency)
+                        .ThenByDescending(st => st.EmployeeId)
+                        .ToList();
+
+    return Results.Ok(sortedTickets);
+});
 
 app.MapGet("/employee", () =>
 {
@@ -184,6 +221,57 @@ app.MapGet("/employee/{id}", async (int id) =>
     return Results.Ok(employee);
 });
 
+app.MapGet("/employee/available", () =>
+{
+    List<Employee> availableEmployees = employees
+               .Where(emp => !serviceTickets
+               .Any(st => st.EmployeeId == emp.Id && st.DateCompleted == null))
+               .ToList();
+
+    if (availableEmployees.Count == 0)
+    {
+       return Results.NotFound();
+    }
+
+    return Results.Ok(availableEmployees);
+});
+
+app.MapGet("/employee/{id}/customers", (int id) =>
+{
+    var customerIds = serviceTickets
+                        .Where(st => st.EmployeeId == id)
+                        .Select(st => st.CustomerId) // extracts CustomerId from each service ticket
+                        .Distinct() // basically removes duplicates, only shows each customer once
+                        .ToList();
+
+    List<Customer> employeeCustomers = customers.Where(c => customerIds.Contains(c.Id)).ToList();
+
+    return Results.Ok(employeeCustomers);
+});
+
+app.MapGet("/employee/month", () =>
+{
+    var completedTicketCountByEmployee = serviceTickets
+        .Where(st => st.EmployeeId != null && st.DateCompleted != null)
+        .GroupBy(st => st.EmployeeId) // groups tickets by employeeId/sets to key
+        .Select(st => new
+        {
+            EmployeeId = st.Key,
+            ServiceTicketCount = st.Count() // .Key accesses the identifier of the group (set by GroupBy method)
+        })
+        .OrderByDescending(c => c.ServiceTicketCount)
+        .FirstOrDefault();
+
+    if (completedTicketCountByEmployee == null)
+    {
+        return Results.NotFound();
+    }
+
+    var topTicketCountByEmployee = employees.FirstOrDefault(e => e.Id == completedTicketCountByEmployee.EmployeeId);
+
+    return Results.Ok(topTicketCountByEmployee);
+});
+
 app.MapGet("/customer", () =>
 {
     return customers;
@@ -198,6 +286,18 @@ app.MapGet("/customer/{id}", (int id) =>
     }
     customer.ServiceTickets = serviceTickets.Where(st => st.CustomerId == id).ToList();
     return Results.Ok(customer);
+});
+
+app.MapGet("/customer/inactive", () =>
+{
+    DateTime lastYear = DateTime.Now.AddYears(-1);
+
+    List<Customer> inactiveCustomers = customers
+                   .Where(c => !serviceTickets
+                   .Any(st => st.CustomerId == c.Id && st.DateCompleted.HasValue && st.DateCompleted.Value > lastYear))
+                   .ToList();
+
+    return Results.Ok(inactiveCustomers);
 });
 
 // always make sure this is at the end of the file:
